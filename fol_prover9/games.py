@@ -13,10 +13,9 @@ def loadGameDate(n):
     for i in range(1, nr + 1):
         atributes = re.split("!", lines[i])
         # print(lines[i], atributes)
-        crewmates += [Character(atributes[0], atributes[1], atributes[2], atributes[3] == "Sus")]
+        crewmates += [Character(atributes[0], atributes[1], atributes[2], atributes[3] == "Sus", atributes[4] == "Alive")]
 
     f.close()
 
     return (nr, crewmates)
-
 

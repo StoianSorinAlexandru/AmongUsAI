@@ -1,7 +1,7 @@
 class Character:
-    def __init__(self, color, position, statement, isImposter):
+    def __init__(self, color, position, statement, isImposter, alive):
         self.color = color
-        self.alive = True
+        self.alive = alive
         self.position = position
         self.statement = statement
         self.isImposter = isImposter

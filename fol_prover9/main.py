@@ -11,12 +11,12 @@ sentence5 = "Crewmate5 is in OTwo with Crewmate1"
 sentence6 = "Crewmate6 is in Electrical with Crewmate2"
 
 
-character1 = Character("red", "OTwo", sentence1, False)
-character2 = Character("blue", "Cafeteria", sentence2, False)
-character3 = Character("green", "Admin", sentence3, False)
-character4 = Character("pink", "Cafeteria", sentence4, False)
-character5 = Character("orange", "OTwo", sentence5, False)
-character6 = Character("yellow", "Electrical", sentence6, True)
+character1 = Character("red", "OTwo", sentence1, False, True)
+character2 = Character("blue", "Cafeteria", sentence2, False, True)
+character3 = Character("green", "Admin", sentence3, False, True)
+character4 = Character("pink", "Cafeteria", sentence4, False, True)
+character5 = Character("orange", "OTwo", sentence5, False, True)
+character6 = Character("yellow", "Electrical", sentence6, True, True)
 
 c = [character1, character2, character3, character4, character5, character6]
 # create_file(generateAllAsumptions(6, c))
