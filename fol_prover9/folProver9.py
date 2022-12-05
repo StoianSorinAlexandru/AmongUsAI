@@ -11,6 +11,24 @@ nltk.download('maxent_ne_chunker')
 nltk.download('tkinter')
 nltk.download('treebank')
 
+
+roomAdjacencyCrewmates = {
+    "Reactor": ["Security", "UpperEngine", "LowerEngine"],
+    "Security": ["Reactor", "UpperEngine", "LowerEngine"],
+    "UpperEngine": ["Reactor", "Security", "LowerEngine", "Cafeteria", "Medbay"],
+    "LowerEngine": ["Reactor", "Security", "UpperEngine", "Storage", "Electrical"],
+    "Storage": ["LowerEngine", "Electrical", "Admin", "Cafeteria", "Communications", "Shields"],
+    "Medbay": ["UpperEngine", "Cafeteria"],
+    "Electrical": ["Storage", "LowerEngine"],
+    "Admin": ["Storage", "Cafeteria"],
+    "Cafeteria": ["UpperEngine", "Storage", "Weapons", "Admin", "Medbay"],
+    "Communications": ["Storage", "Shields"],
+    "Weapons": ["Cafeteria", "OTwo", "Shields", "Navigation"],
+    "OTwo": ["Weapons", "Navigation", "Shields"],
+    "Shields": ["Storage", "Communications", "OTwo", "Navigation", "Weapons"],
+    "Navigation": ["Weapons", "OTwo", "Shields"]
+}
+
 def string_to_prover9(sentence):
 
 
@@ -29,7 +47,7 @@ def string_to_prover9(sentence):
     if x[2] != "in":
         return "incorrect sentence structure: " + x[2] + " (must be 'in')"
 
-    if not re.search("Reactor|OTwo|Weapons|Navigation|Admin|Electrical|Storage|Security|Medbay|Cafeteria", x[3]):
+    if not re.search("Reactor|OTwo|Weapons|Navigation|Admin|Electrical|Storage|Security|Medbay|Cafeteria|LowerEngine|UpperEngine|Communications|Shields", x[3]):
         return "Error: Invalid room name"
 
     if not re.search("with|alone", x[4]):
@@ -55,7 +73,14 @@ def string_to_prover9(sentence):
 def generateBaseAssumptions(n):
     baseAssumptions = []
 
-    rooms = ["Reactor", "OTwo", "Weapons", "Navigation", "Admin", "Electrical", "Storage", "Security", "Medbay", "Cafeteria"]
+    rooms = ["Reactor", "OTwo", "Weapons", "Navigation", "Admin", "Electrical", "Storage", "Security", "Medbay", "Cafeteria", "LowerEngine", "UpperEngine", "Communications", "Shields"]
+
+    for i in range(0, len(rooms)):
+        st = rooms[i].lower() + "last(x) & (" + rooms[i].lower() + "(x) | "
+        for j in range(0, len(roomAdjacencyCrewmates[rooms[i]])):
+            st += roomAdjacencyCrewmates[rooms[i]][j].lower() + "(x) | "
+        st = st[:-3] + ") -> vent(x)"
+        baseAssumptions.append(st)
 
     for i in range(0, len(rooms) - 1):
         st = rooms[i].lower() + "(x) -> "
@@ -69,8 +94,14 @@ def generateBaseAssumptions(n):
 def generatePositionalAssumptions(characters):
     assumptions = []
     for i in range(0, len(characters)):
-        st = "%s" %characters[i].position.lower() + "(crewmate%d)" % (i + 1)
-        assumptions.append(st)
+        if characters[i].alive:
+            st1 = "%s" %characters[i].position.lower() + "(crewmate%d)" % (i + 1)
+            assumptions.append(st1)
+
+            if characters[i].lastPosition != "":
+                st2 = "%s" %characters[i].lastPosition.lower() + "last(crewmate%d)" % (i + 1)
+                assumptions.append(st2)
+
     return assumptions
 
 
@@ -80,7 +111,8 @@ def generateAllAsumptions(n, characters):
     allAssumptions += generateBaseAssumptions(n)
     allAssumptions += generatePositionalAssumptions(characters)
     for character in characters:
-        allAssumptions += [string_to_prover9(character.statement)]
+        if character.alive:
+            allAssumptions += [string_to_prover9(character.statement)]
     return allAssumptions
 
 def solve(characters, n):
@@ -94,9 +126,11 @@ def solve(characters, n):
     impostors = []
 
     for i in range(1, n + 1):
-        g = Expression.fromstring("p%d" % i)
-        if not (Prover9().prove(g, prover9Assumptions)):
-            impostors += [i]
+        if characters[i - 1].alive:
+            g = Expression.fromstring("p%d" % i)
+            v = Expression.fromstring("vent(crewmate%d)" % i)
+            if not (Prover9().prove(g, prover9Assumptions) and Prover9().prove(v, prover9Assumptions)) :
+                impostors += [i]
 
     return impostors
 def create_file(allAssumptions):
